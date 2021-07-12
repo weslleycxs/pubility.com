@@ -1,0 +1,10 @@
+node_modules
+app/storage/*
+sftp-config.json
+.env
+*.pem
+.pem
+.logs
+.project
+app/data
+modules/*
