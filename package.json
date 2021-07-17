@@ -13,7 +13,7 @@
 	},
 	"kugel": {
 		"modules": {
-			"core": [],
+			"core": ["cl", "better-express"],
 			"startup": [],
 			"start": []
 		},
