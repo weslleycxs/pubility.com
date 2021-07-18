@@ -403,7 +403,7 @@ server.listen(port, () => {
 
     }
 
-    fs.writeFile(path.join(global.dir.logs, 'last.pid'), process.pid, 'utf-8')
+    fs.writeFile(path.join(global.dir.logs, 'last.pid'), process.pid.toString(), 'utf-8')
 
     global.helpers.f.checksum()
 
