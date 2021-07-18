@@ -912,9 +912,21 @@ const Logs = {
 
         });
 
-        Logs.save('server start', {
-            at: new Date().getTime()
-        }, 12);
+        let notifyServerStart = true;
+
+        if(process.env._ && process.env._.substr(-7) === 'nodemon'){
+
+            notifyServerStart = false;
+
+        }
+
+        if(notifyServerStart){
+
+            Logs.save('server start', {
+                at: new Date().getTime()
+            }, 12);
+            
+        }
 
         var reviews = Logs.getReviews();
 
