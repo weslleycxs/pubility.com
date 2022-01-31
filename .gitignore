@@ -7,4 +7,12 @@ sftp-config.json
 .logs
 .project
 app/data
+.sql
 modules/*
+.cache
+app/controllers/*
+app/models/*
+app/routes/*
+app/assets/*
+doc/tests/results/*
+app/views/public/*

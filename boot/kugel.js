@@ -1,16 +1,10 @@
-process.env.TZ = 'America/Sao_Paulo'
-
 const path = require('path')
 const fs   = require('fs-extra')
-
-require('colors')
-
-const package = require('./package.json')
 
 let Logs = require('./logs')
 let Util = require('./util')
 
-Logs.init(__dirname + '/.logs')
+Logs.init(global.dir.root + '/.logs')
 
 if(!process.env.APP_NAME || !process.env.SECRET){
 
@@ -21,7 +15,7 @@ if(!process.env.APP_NAME || !process.env.SECRET){
 }
 
 // Require configuration file
-global.config = package.kugel.config
+global.config = global.package.kugel.config
 
 const port     = process.env.PORT     || 8080
 const host     = process.env.HOST     || 'localhost'
@@ -48,13 +42,6 @@ module.exports = {
 
 }
 
-// @todo No kugel, deve-se ser capaz de definir isso dentro do arquivo de declaração do projeto
-if(!process.env.SKUS_IMAGE){
-
-    process.env.SKUS_IMAGE = path.join(global.dir.storage, 'product-images')
-
-}
-
 fs.ensureDirSync(global.dir.models)
 fs.ensureDirSync(global.dir.storage)
 fs.ensureDirSync(global.dir.modules)
@@ -67,10 +54,24 @@ fs.ensureDirSync(path.join(global.dir.doc, 'generated-files'))
 
 fs.ensureDirSync(global.dir.data)
 
+if(global.dir.views){
+
+    fs.ensureDirSync(global.dir.views)
+    fs.ensureDirSync(path.join(global.dir.views, 'components'));
+    fs.ensureDirSync(path.join(global.dir.views, 'components', 'header'));
+    fs.ensureDirSync(path.join(global.dir.views, 'components', 'body'));
+
+}
+
+if (global.dir.assets) {
+
+    fs.ensureDirSync(global.dir.assets)
+
+}
+
 // Require main modules
 const express = require('express')
 const http    = require('http')
-const fileUpload = require('express-fileupload')
 
 if(global.config.modules){
 
@@ -110,28 +111,61 @@ if (global.config.body_parser){
     var bodyParser  = require('body-parser')
 }
 
-if(global.config.views){
-
-    global.dir.views = path.join(global.dir.app, global.config.views)
-
-    // Assegura que a pasta views existe
-    fs.ensureDirSync(global.dir.views)
-
-}
-
-if(global.config.database){
-
-    // Armazena a instancia do banco de dados
-    global.Database = require(global.dir.root + '/database.js')
-    global.db       = global.Database
-
-    if(global.app.ondatabasestart) global.app.ondatabasestart()
-
-}
-
 if(global.config.socket){
 
-    global.socket = require(path.join(global.dir.root, 'socket.js'))
+    global.io = null
+
+    global.socket = {
+
+        // @todo Mover para uma área melhor
+        loggedUsers: {},
+
+        setup(io){
+
+            global.io = io
+
+            global.modules.module.getComponentStack('socket-middleware').forEach(socketComponent => {
+
+                io.use(socketComponent)
+
+            })
+
+            io.on('connection', socket => {
+
+                socket.on('login', (jwt, callback) => {
+
+                    console.log('Login de socket')
+
+                    global.modules.module.getComponentStack('socket-con').forEach(socketComponent => {
+
+                        socketComponent(socket)
+
+                    })
+
+                    if(typeof callback === 'undefined') callback = function(){}
+
+                    socket.emit('checksum', global.helpers.vars.checksum)
+
+                    global.helpers.jwt.verify(jwt).then(decoded => {
+
+                        socket.decoded = decoded
+
+                        Users.setLastLogin(decoded.mail)
+
+                        socket.join('logged')
+                        socket.join('user_' + decoded.id)
+
+                        callback()
+
+                    })
+
+                })
+
+            })
+
+        }
+
+    }
 
 }
 
@@ -164,15 +198,14 @@ if (global.config.cors) {
 
         res.header('Access-Control-Allow-Origin', '*')
         res.header('Access-Control-Allow-Credentials', 'true')
-        res.header('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, action, x-access-token')
+        res.header('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Access-Control-Allow-Methods, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, action, x-access-token')
+        res.header('Access-Control-Allow-Methods', '*')
 
         next()
 
     })
 
 }
-
-app.use(fileUpload())
 
 global.modules.module.getComponentStack('express-middleware').forEach(middleware => {
 
@@ -205,10 +238,6 @@ if (global.config.gzip){
 
 // Enable delivery of static content
 if (global.config.assets) {
-
-    global.dir.assets = path.join(global.dir.app, global.config.assets)
-
-    fs.ensureDirSync(global.dir.assets)
 
     fs.ensureDirSync(path.join(global.dir.assets, 'js'))
     fs.ensureDirSync(path.join(global.dir.assets, 'css'))
@@ -274,122 +303,24 @@ if (global.config.session && global.config.socket){
     }))
 }
 
-fs.readdirSync(global.dir.helpers).forEach((file) => {
-
-    global.helpers[file.replace('.js', '')] = require(path.join(global.dir.helpers, file))
-
-})
-
 global.app.onload(() => {
 
-    // Passa por cada arquivo dentro de routes e o inicia
-    fs.readdirSync(global.dir.routes).forEach(routeName => {
+    global.modules.module.onComponent('onload express-middleware', middleware => {
 
-        let routeFile = path.join(global.dir.routes, routeName)
-
-        let routeObj = require(routeFile)
-
-        if(typeof routeObj === 'object') return
-
-        let router = new express.Router()
-
-        routeObj({
-
-            get(route, f){
-
-                router.get(route, (req, res) => {
-
-                    res.std(f(req.query))
-
-                })
-
-            },
-
-            post(route, f){
-
-                router.post(route, (req, res) => {
-
-                    res.std(f(req.body))
-
-                })
-
-            },
-
-            put(route, f){
-
-                router.put(route, (req, res) => {
-
-                    res.std(f(req.body))
-
-                })
-
-            },
-
-            jwt: {
-
-                get(route, f){
-
-                    router.get(route, global.helpers.jwt.middleware, (req, res) => {
-
-                        res.std(f(req.decoded, req.query))
-
-                    })
-
-                },
-
-                post(route, f){
-
-                    router.post(route, global.helpers.jwt.middleware, (req, res) => {
-
-                        res.std(f(req.decoded, req.body))
-
-                    })
-
-                },
-
-                put(route, f){
-
-                    router.put(route, global.helpers.jwt.middleware, (req, res) => {
-
-                        res.std(f(req.decoded, req.body))
-
-                    })
-
-                }
-
-            }
-
-        })
-
-        // Caso a rota esteja prefixada
-        if(typeof routeObj.route !== 'undefined'){
-
-            // Router com prefixo
-            app.use(routeObj.route, router)
-
-        } else{
-
-            // Router sem prefixo
-            app.use(router)
-
-        }
+        middleware(app);
 
     })
 
     // Ignore cordova.js 404 error on browser environment
     app.get('cordova.js', (req, res) => res.send(''))
 
-    app.all('*', (req, res) => {
+    if(global.modules.cl){
 
-        Logs.notFound(req)
+        global.modules.cl.init(process)
 
-        res.status(404).send('Not found')
+        Util.cl.setup(global.modules.cl)
 
-    })
-
-    global.modules.cl.init(process)
-
-    Util.cl.setup(global.modules.cl)
+    }
 
 })
 

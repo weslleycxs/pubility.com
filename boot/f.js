@@ -5,10 +5,61 @@ const path       = require('path');
 const fs         = require('fs-extra');
 const {crc32}    = require('crc');
 const xlsx       = require('xlsx');
+const pug        = require('pug');
 
-let Logs = require(global.dir.root + '/logs.js');
+let Logs = require(global.dir.helpers + '/logs.js');
 
 module.exports = {
+
+    compileComponents(sub){
+
+        let componentsPath = path.join(global.dir.views, 'components', sub);
+
+        let components = fs.readdirSync(componentsPath);
+
+        let fullHtml = '';
+
+        for(component of components){
+
+            let componentPath = path.join(componentsPath, component);
+
+            fullHtml += module.exports.compileView(componentPath, {
+                require: require,
+                pretty: true
+            });
+
+        }
+
+        return fullHtml;
+
+    },
+
+    compileView(file, options){
+
+        return pug.renderFile(file, options);
+
+    },
+
+    matchPattern(str, rule){
+
+        let notMatch = false;
+
+        if(rule[0] == '!'){
+
+            notMatch = true;
+            rule = rule.substr(1);
+
+        }
+
+        var escapeRegex = (str) => str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+
+        let test = new RegExp("^" + rule.split("*").map(escapeRegex).join(".*") + "$").test(str);
+
+        if(notMatch) test = !test;
+
+        return test;
+
+    },
 
     arrayToXlsx: function(filename, array){
 
@@ -669,7 +720,7 @@ module.exports = {
 
     },
 
-    checksum(){
+    checksum(triggerFile){
 
         let checksumPath = path.join(global.dir.logs, 'checksum.sha512');
 
@@ -685,7 +736,7 @@ module.exports = {
 
                         console.log('@warn Nova versão de assets detectada(notifica atualização PWA)');
 
-                        if(global.io) global.io.emit('checksum', newChecksum);
+                        if(global.io) global.io.emit('checksum', newChecksum, triggerFile);
 
                         fs.writeFile(checksumPath, newChecksum, 'utf-8');
 
@@ -703,30 +754,37 @@ module.exports = {
 
 global.app.onload(() => {
 
-    global.cl.add('list assets', () => {
+    if(global.cl){
 
-        module.exports.getAssets().then(assets => {
+        global.cl.add('list assets', () => {
 
-            assets.forEach(asset => {
+            module.exports.getAssets().then(assets => {
 
-                console.log("'" + asset + "',");
+                assets.forEach(asset => {
+
+                    console.log("'" + asset + "',");
+
+                });
 
             });
 
         });
 
-    });
+        global.cl.add('show checksum', () => {
 
-    global.cl.add('show checksum', () => {
+            module.exports.assetsChecksum().then(checksum => {
 
-        module.exports.assetsChecksum().then(checksum => {
+                console.log('Checksum', checksum);
 
-            console.log('Checksum', checksum);
+            });
 
-        });
-
-    }, 'lista o CRC dos arquivos da pasta assets');
+        }, 'lista o CRC dos arquivos da pasta assets');
+        
+    }
 
 });
 
 // module.exports.saveLastMod();
+
+
+

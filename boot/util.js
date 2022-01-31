@@ -1,6 +1,6 @@
 const inquirer = require('inquirer')
 const request  = require('request')
-const walkdir  = require("walkdir")
+const walkdir  = require('walkdir')
 const forge    = require('node-forge')
 const crc32    = require('crc').crc32
 const uuid     = require('uuid').v4
@@ -24,11 +24,15 @@ exports.tree = (folderPath) => {
 
         walk.on('file', (asset) => {
 
+            if(~asset.indexOf('node_modules')) return;
+
             files.push(asset.replace(folderPath, ''));
 
         });
 
         walk.on('folder', (asset) => {
+
+            if(~asset.indexOf('node_modules')) return;
 
             files.push(asset.replace(folderPath, ''));
 
@@ -154,7 +158,7 @@ exports.env = {
 
         ];
 
-        if(require('./package.json').kugel.config.database){
+        if(require('../package.json').kugel.config.database){
 
             questionList.push({
                 name: 'MYSQL_HOST',
@@ -406,12 +410,16 @@ exports.kugel = {
 
     compileViews(){
 
+        if(!global.config.compileViews) return;
+
         let compileViewsPath = path.join(global.dir.app, global.config.compileViews);
 
         let files   = [];
         let folders = [];
 
         return new Promise((resolve, reject) => {
+
+            fs.ensureDirSync(compileViewsPath);
 
             let walk = walkdir(compileViewsPath);
 
@@ -471,8 +479,13 @@ exports.kugel = {
 
             });
 
+            return Promise.all(filePromise);
+
         });
 
     }
 
 }
+
+global.util = module.exports;
+
