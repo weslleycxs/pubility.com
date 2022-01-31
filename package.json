@@ -17,23 +17,29 @@
 				"cl",
 				"better-express"
 			],
-			"startup": [],
+			"startup": [
+				"pubility-front"
+			],
 			"start": []
 		},
 		"config": {
 			"gzip": true,
 			"morgan": true,
 			"session": false,
-			"socket": true,
+			"socket": false,
 			"cors": true,
-			"assets": false,
+			"assets": "assets",
 			"views": false,
 			"template_engine": false,
-			"body_parser": true,
-			"jwt": true,
-			"database": true,
+			"body_parser": false,
+			"jwt": false,
+			"database": false,
 			"modules": true,
-			"state": "development"
+			"state": "development",
+			"cache": "cache.manifest",
+			"compiledViewsDest": "assets",
+			"compileViews": "views/public",
+			"viewsOptions": {}
 		}
 	},
 	"dependencies": {

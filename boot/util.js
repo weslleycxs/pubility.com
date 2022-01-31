@@ -446,11 +446,13 @@ exports.kugel = {
 
         }).then(() => {
 
-            let folderPromise = [];
+            let compiledPath = path.join(global.dir.app, global.config.compiledViewsDest);
+
+            let folderPromise = [fs.ensureDir(compiledPath)];
 
             folders.forEach(folder => {
 
-                let compiledFolder = path.join(global.dir.app, global.config.compiledViewsDest, folder);
+                let compiledFolder = path.join(compiledPath, folder);
 
                 folderPromise.push(fs.ensureDir(compiledFolder));
 

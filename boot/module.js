@@ -44,7 +44,7 @@ module.exports = {
 
         }
 
-        global.modules.cl.add("apply views", function(){
+        global.modules.cl.add("compile views", function(){
 
             Util.kugel.compileViews();
 
@@ -139,7 +139,7 @@ module.exports = {
         switch(extensionFile){
             case '.pug':
 
-                global.modules.cl.execute('apply views');
+                global.modules.cl.execute('compile views');
 
             break;
             case '.sass':
@@ -668,8 +668,6 @@ module.exports = {
             process.exit();
 
         }
-
-        console.log(moduleRepoPath, modulePath)
 
         if(process.env.MODULES_SYMLINK) fs.symlinkSync(moduleRepoPath, modulePath);
         else fs.copySync(moduleRepoPath, modulePath);
