@@ -211,6 +211,15 @@ module.exports = {
     // Move os arquivos públicos da pasta do módulo para a pasta app
     applyFiles(moduleName){
 
+        // @todo Analisar colocar uma mensagem de problema,
+        // no caso dessa global.dir.views ser indefinida também
+        // em um erro, além do motivo de simplesmente ser 
+        // package.config.views = false
+
+        if(typeof global.dir.views == undefined){
+            return;
+        }
+
         let firstTime = false;
 
         if(!module.exports.applyFilesFirstRun[moduleName]){

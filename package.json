@@ -14,11 +14,15 @@
 	"kugel": {
 		"modules": {
 			"core": [
+				"_kugel",
 				"cl",
-				"better-express"
+				"better-express",
+				"pl-pwa"
 			],
 			"startup": [
-				"pubility-front"
+				"jquery",
+				"pubility-front",
+				"hotreload"
 			],
 			"start": []
 		},
@@ -29,7 +33,7 @@
 			"socket": false,
 			"cors": true,
 			"assets": "assets",
-			"views": false,
+			"views": "views",
 			"template_engine": false,
 			"body_parser": false,
 			"jwt": false,
@@ -39,7 +43,11 @@
 			"cache": "cache.manifest",
 			"compiledViewsDest": "assets",
 			"compileViews": "views/public",
-			"viewsOptions": {}
+			"viewsOptions": {},
+			"logo": "app/img/favicon.png",
+			"theme_color": "#6de6ff",
+			"background_color": "#efefef",
+			"start_url": "/"
 		}
 	},
 	"dependencies": {
