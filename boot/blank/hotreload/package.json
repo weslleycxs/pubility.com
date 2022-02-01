@@ -1,0 +1,13 @@
+{
+  "name": "hotreload",
+  "version": "1.0.0",
+  "description": "",
+  "main": "hotreload.js",
+  "author": "Pliffer",
+  "license": "ISC",
+  "dependencies": {
+    "chokidar": "^3.5.2",
+    "fs-extra": "^10.0.0",
+    "vm": "^0.1.0"
+  }
+}

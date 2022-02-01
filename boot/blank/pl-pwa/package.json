@@ -1,0 +1,9 @@
+{
+    "name": "pl-pwa",
+    "version": "1.0.0",
+    "description": "Cria o manifest e permite que o app seja acessível offline",
+    "main": "pl-pwa.js",
+    "author": "pliffer",
+    "license": "MIT",
+    "dependencies": {}
+}

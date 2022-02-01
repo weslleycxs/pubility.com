@@ -1,0 +1,10 @@
+{
+    "name": "pubility-front",
+    "version": "1.0.0",
+    "description": "modulo de assets do app",
+    "main": "pubility-front.js",
+    "author": "Pliffer",
+    "license": "ISC",
+    "dependencies": {},
+    "kugel": true
+}

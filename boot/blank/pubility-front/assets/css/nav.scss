@@ -1,0 +1,33 @@
+.nav{
+
+	display: flex;
+    border-bottom: 1px solid silver;
+    padding: 18px;
+    background: white;
+
+	.logo{
+		img{
+			vertical-align: middle;
+		}
+	}
+
+	.middle{
+		display: flex;
+		flex-grow: 1;
+	}
+
+	.search{
+
+		input{
+		    padding: 10px;
+		    border: 0;
+		    border-bottom: 2px solid #ff0063;
+		    width: 348px;
+		}
+
+		img{
+			vertical-align: middle;
+		}
+
+	}
+}
